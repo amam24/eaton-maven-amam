@@ -1,36 +1,27 @@
 package fr.amameri.eatonmaven;
 
-import java.io.BufferedReader;
+import java.io.BufferedReader; //lire le texte reçu Ã  partir de l'émetteur
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.ServerSocket; //cette classe accepte les connexions venues des clients
+import java.net.Socket; //cette classe permet de se connecter Ã  la machine distante.
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class ServerTest {
-	private int slavePort;
 	private int clientPort;
-	private SlaveThread slaveThread;
 	private ClientThread clientThread;
 	private boolean running = false;
-	public int slaveConnected; // Slave connection counter
 
-	public ServerTest(int slavePort, int clientPort) {
-		this.slavePort = slavePort;
+	public ServerTest(int clientPort) {
+
 		this.clientPort = clientPort;
-		this.slaveConnected = 0;
 	}
 
 	public void startServer() {
 		try {
-			this.slaveThread = new SlaveThread(slavePort);
 			this.clientThread = new ClientThread(clientPort);
-			System.out.println("En attente de connexion client / slave");
-			slaveThread.start();
+			System.out.println("En attente de connexion client");
 			clientThread.start();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -39,39 +30,16 @@ public class ServerTest {
 
 	public void stopServer() {
 		running = false;
-		this.slaveThread.interrupt();
 		this.clientThread.interrupt();
 
-	}
-
-	class SlaveThread extends Thread {
-		private ServerSocket slaveSocket;
-
-		SlaveThread(int slavePort) throws IOException {
-			this.slaveSocket = new ServerSocket(slavePort);
-		}
-
-		@Override
-		public void run() {
-			running = true;
-			while (running) {
-				try {
-					// Call accept() to receive the next connection
-					Socket slSocket = slaveSocket.accept();
-					System.out.println("Une nouvelle connexion a Ã©tÃ© crÃ©Ã©e Slave");
-
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
 	}
 
 	class ClientThread extends Thread {
 		private ServerSocket clientSocket;
 
 		ClientThread(int clientPort) throws IOException {
-			this.clientSocket = new ServerSocket(clientPort);
+			this.clientSocket = new ServerSocket(clientPort); // création du socket serveur qui porte le numéro de port
+																// 24000
 
 		}
 
@@ -83,11 +51,11 @@ public class ServerTest {
 
 			while (running) {
 				try {
-					Socket clSocket = clientSocket.accept();
-					BufferedReader in = new BufferedReader(new InputStreamReader(clSocket.getInputStream()));
-					System.out.println("Une nouvelle connexion a Ã©tÃ© crÃ©Ã©e Client");
+					Socket clSocket = clientSocket.accept(); // acceptation des connexions entrantes
+					BufferedReader in = new BufferedReader(new InputStreamReader(clSocket.getInputStream())); //gestion de flux de lecture
+					System.out.println("Une nouvelle connexion a été créée Client");
 
-					String inputLine;
+					String inputLine;//message reçu
 					while ((inputLine = in.readLine()) != null) {
 						System.out.println("Client: " + inputLine);
 						list.add(Integer.parseInt(inputLine));
@@ -107,9 +75,9 @@ public class ServerTest {
 	}
 
 	public static void main(String[] args) {
-		ServerTest server = new ServerTest(24000, 15000);
+		ServerTest server = new ServerTest(24000);
 		server.startServer();
-		// Automatically shutdown in 1 minute
+		// Automatiquement shutdown dans 1 minute
 		try {
 			Thread.sleep(60000);
 		} catch (Exception e) {

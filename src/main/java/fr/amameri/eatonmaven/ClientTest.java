@@ -1,22 +1,19 @@
 package fr.amameri.eatonmaven;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.PrintWriter; //envoyer le texte saisi
 import java.net.Socket;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+
 public class ClientTest {
 	private static final int NUMBERS = 15;
 	private static final int AMPLITUDE = 100;
-	private static int masterPort;
 
-	public ClientTest(int port) {
-		this.masterPort = port;
-	}
+	
 
 	public static void main(String[] args) throws IOException {
 		String serverHostname = "127.0.0.1"; //
@@ -31,11 +28,11 @@ public class ClientTest {
 
 	public static class ClientOut extends Thread {
 		private Socket echoSocket;
-		private PrintWriter writer;
+		private PrintWriter writer;//variable qui gère le flux d'écriture out
 		private ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
 		ClientOut(String serverHostname) throws IOException {
-			this.echoSocket = new Socket(serverHostname, 15000);
+			this.echoSocket = new Socket(serverHostname, 24000);
 			this.writer = new PrintWriter(echoSocket.getOutputStream(), true);
 			;
 
@@ -51,11 +48,18 @@ public class ClientTest {
 							System.out.println(num);
 							writer.println(num);
 							TimeUnit.SECONDS.sleep(1);
+							
 						}
+						//sortir de la boucle si le client a déconecté
+		                System.out.println("Client déconecté");
+		                echoSocket.close();
+						writer.close();//                //fermer le flux et la session socket
 					} catch (InterruptedException e) {
 						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
-					writer.close();
+					
 				}
 			}, 0, 3, TimeUnit.SECONDS);
 		}
